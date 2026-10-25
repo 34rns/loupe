@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Loupe</title>
+<link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+<header class="head">
+  <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="10.1" cy="10.1" r="6.2" fill="none" stroke="currentColor" stroke-width="1.7" />
+    <circle cx="10.1" cy="10.1" r="2.2" fill="none" stroke="currentColor" stroke-width="1" opacity=".5" />
+    <path d="M14.8 14.8 20 20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" />
+  </svg>
+  <h1>Loupe</h1>
+  <span class="state" id="masterState">On</span>
+  <label class="master" title="Turn Loupe on or off">
+    <span class="sr">Loupe enabled</span>
+    <input type="checkbox" class="switch" id="master" data-setting="enabled" />
+  </label>
+</header>
+
+<div class="rows">
+  <div class="row">
+    <label class="lbl" for="sensitivity">Response</label>
+    <div class="ctrl">
+      <input type="range" id="sensitivity" data-setting="sensitivity" min="0.25" max="2" step="0.05" />
+      <output class="val" id="sensitivityVal" for="sensitivity">1.0&times;</output>
+    </div>
+  </div>
+
+  <div class="row">
+    <label class="lbl" for="maxScale">Max zoom</label>
+    <div class="ctrl">
+      <input type="range" id="maxScale" data-setting="maxScale" min="1.5" max="8" step="0.5" />
+      <output class="val" id="maxScaleVal" for="maxScale">6.0&times;</output>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="lbl" id="actLbl">Scroll to zoom</span>
+    <div class="seg" role="radiogroup" aria-labelledby="actLbl">
+      <button type="button" role="radio" data-activation="wheel" aria-checked="true"
+              title="Plain scrolling over media zooms"><span class="seg-label">Wheel</span></button>
+      <button type="button" role="radio" data-activation="alt" aria-checked="false"
+              title="Scroll while holding Alt (Option on a Mac)"><span class="seg-label">Hold Alt</span></button>
+      <button type="button" role="radio" data-activation="hold" aria-checked="false"
+              title="Scroll only while holding a key or mouse button you choose"><span class="seg-label">Hold key</span></button>
+    </div>
+  </div>
+
+  <div class="row" id="holdRow" hidden>
+    <span class="lbl" id="holdLbl">Held input</span>
+    <button type="button" class="chip" id="holdPick" aria-labelledby="holdLbl holdPick">
+      Shift
+    </button>
+  </div>
+
+  <div class="row">
+    <span class="lbl" id="areaLbl">Zoom area</span>
+    <div class="seg" role="radiogroup" aria-labelledby="areaLbl">
+      <button type="button" role="radio" data-zoom-mode="frame" aria-checked="false"
+              title="The zoom stays inside the picture's own frame; the page around it is untouched"><span class="seg-label">In frame</span></button>
+      <button type="button" role="radio" data-zoom-mode="page" aria-checked="true"
+              title="The zoom grows past the picture's frame, painted above the page so headers, rails and overlays never cover it"><span class="seg-label">Whole page</span></button>
+    </div>
+  </div>
+
+  <div class="row">
+    <label class="lbl" for="smooth">Smooth motion</label>
+    <input type="checkbox" class="switch" id="smooth" data-setting="smooth" />
+  </div>
+
+  <div class="row">
+    <label class="lbl" for="bgImages">Zoom background art</label>
+    <input type="checkbox" class="switch" id="bgImages" data-setting="bgImages" />
+  </div>
+
+  <div class="row">
+    <label class="lbl" for="pauseVideo">Pause video while zoomed</label>
+    <input type="checkbox" class="switch" id="pauseVideo" data-setting="pauseVideo"
+           title="Freeze the video for the duration of the zoom and let it play again when you leave" />
+  </div>
+
+  <div class="row">
+    <label class="lbl" for="hud">Show zoom readout</label>
+    <input type="checkbox" class="switch" id="hud" data-setting="hud" />
+  </div>
+</div>
+
+<div class="rule" aria-hidden="true"></div>
+
+<div class="row site">
+  <span class="lbl">On this site</span>
+  <span class="host" id="siteHost">Checking</span>
+  <input type="checkbox" class="switch" id="siteToggle" data-site-toggle />
+</div>
+
+<footer class="foot">
+  <span class="ver" id="ver">0.1.0</span>
+  <button type="button" class="ghost" id="reset">Reset settings</button>
+</footer>
+
+<script src="../shared/settings.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

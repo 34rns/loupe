@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# test runners
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# local capture artifacts — never part of a release zip
+.artifacts/
+
+# archives produced by release.ps1
+*.zip
+dist/
+.release-stage/
+
+# env files and keys
+.env
+.env.*
+*.pem
+*.key
+
+# os / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

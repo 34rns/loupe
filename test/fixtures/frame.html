@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Loupe frame fixture</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; background: #10131a; color: #e7e7ea; font: 13px/1.4 system-ui; }
+  .wrap { padding: 14px; }
+  img { display: block; width: 480px; height: 240px; border-radius: 8px; }
+  p { margin: 8px 0 0; color: #9aa3ad; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img id="framePhoto" alt="inside a frame"
+       src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='960' height='480'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23d98d4a'/><stop offset='1' stop-color='%23351f4a'/></linearGradient></defs><rect width='960' height='480' fill='url(%23g)'/><circle cx='220' cy='220' r='120' fill='none' stroke='rgba(255,255,255,.55)' stroke-width='14'/><text x='30' y='450' font-family='sans-serif' font-size='34' fill='white'>IFRAME 960x480</text></svg>" />
+  <p>Image inside an iframe. Loupe's content script runs in this frame too.</p>
+</div>
+</body>
+</html>

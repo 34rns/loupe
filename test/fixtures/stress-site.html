@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Loupe stress fixture</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; font: 14px/1.5 system-ui; background: #0b0b0d; color: #e7e7ea; }
+  header { padding: 24px; border-bottom: 1px solid #26262b; }
+  main { display: grid; gap: 32px; padding: 24px; max-width: 1100px; }
+  section h2 { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #8a8a93; margin: 0 0 12px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+
+  /* #1 overflow:hidden clipping card */
+  .card { width: 420px; border: 1px solid #26262b; border-radius: 12px; overflow: hidden; background: #131316; }
+  .card img { display: block; width: 420px; height: 280px; object-fit: cover; }
+  .card .meta { padding: 12px 14px; font-size: 13px; color: #9a9aa3; }
+
+  /* #2 tiny icon — must NOT claim the wheel */
+  .icon { width: 48px; height: 48px; border-radius: 10px; background: #7c5cff; }
+
+  /* #3 background-image panel (>=200x120) */
+  .bgpanel {
+    width: 320px; height: 200px; border-radius: 12px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='200'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23ff7a59'/><stop offset='1' stop-color='%237c5cff'/></linearGradient></defs><rect width='320' height='200' fill='url(%23g)'/></svg>");
+    background-size: cover;
+  }
+
+  /* #4 canvas */
+  canvas { width: 320px; height: 200px; border-radius: 12px; background: #17171b; }
+
+  /* #5 video (no source needed for transform testing) */
+  video { width: 360px; height: 200px; background: #000; border-radius: 12px; }
+
+  /* #6 open shadow root */
+  #shadow-host { width: 300px; height: 190px; display: inline-block; }
+  iframe { width: 640px; height: 220px; border: 1px solid #26262b; border-radius: 12px; background: #111; }
+
+  /* media under a transparent click layer (Instagram's pattern) */
+  .veiled { position: relative; width: 320px; height: 200px; overflow: hidden; border-radius: 12px; }
+  .veiled img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .veil { position: absolute; inset: 0; cursor: pointer; }
+  .scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); }
+
+  /* media inside z-index:0 wrappers, chrome in a sibling stacking context */
+  .post { position: relative; width: 420px; height: 260px; border-radius: 12px; }
+  .post-media { position: relative; z-index: 0; width: 100%; height: 100%; overflow: hidden; border-radius: 12px; }
+  .post-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .post-ui { position: absolute; right: 10px; bottom: 10px; z-index: 5; display: flex; gap: 8px; }
+  .post-ui span { display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; background: #1b1b20; border-radius: 50%; color: #fff; font-size: 15px; }
+
+  /* carousel: slides side by side inside a clipping track (Instagram pattern) */
+  .carousel { position: relative; width: 420px; height: 260px; }
+  .track { display: flex; height: 100%; overflow: hidden; border-radius: 12px; }
+  .slide { flex: 0 0 100%; height: 100%; }
+  .slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .carousel .next {
+    position: absolute; right: 8px; top: 50%; z-index: 3; transform: translateY(-50%);
+    width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(18, 18, 22, .82);
+    color: #fff; font-size: 17px; line-height: 1; cursor: pointer;
+  }
+
+  /* tight frame that does not clip on its own */
+  .bare { width: 380px; }
+  .bare .tight { width: 380px; height: 240px; }
+  .bare img { display: block; width: 100%; height: 100%; }
+
+  /* #10 page chrome that used to cover the zoom */
+  .hostile { position: relative; width: 420px; height: 280px; }
+  .trapwrap { transform: translateZ(0); width: 100%; height: 100%; }
+  .trapwrap img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+  .cover {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; height: 96px;
+    display: flex; align-items: center; padding: 0 14px; border-radius: 0 0 12px 12px;
+    background: #f4f4f6; color: #111; font-weight: 600; font-size: 13px;
+  }
+  .stickybar {
+    position: fixed; left: 0; right: 0; top: 0; z-index: 9999; height: 44px;
+    display: flex; align-items: center; padding: 0 12px;
+    background: #16161a; border-bottom: 1px solid #26262b;
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8a8a93;
+  }
+
+  /* click trap: if a pan swipe ends on this, it must NOT navigate */
+  .trap { display: inline-flex; width: 420px; height: 280px; align-items: center; justify-content: center; background: #1d1d22; border: 1px dashed #3a3a42; text-decoration: none; color: #e7e7ea; font-weight: 600; border-radius: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <strong>Loupe stress fixture</strong>
+  <span id="counters" style="color:#8a8a93"> pageWheel=0 · docCaptureWheel=0 · clicks=0</span>
+</header>
+<main>
+  <section>
+    <h2>1 · overflow:hidden card (clip escape)</h2>
+    <div class="card">
+      <img id="photo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='840' height='560'><defs><radialGradient id='g' cx='.3' cy='.3'><stop offset='0' stop-color='%2320e3b2'/><stop offset='1' stop-color='%230b3d5c'/></radialGradient></defs><rect width='840' height='560' fill='url(%23g)'/><text x='40' y='90' font-family='sans-serif' font-size='48' fill='white'>LOUPE 840×560</text></svg>" alt="gradient" />
+      <div class="meta">Nested in overflow:hidden — zoomed edges must escape the card.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2 · should not zoom (size guards)</h2>
+    <div class="row">
+      <div class="icon" title="48px box"></div>
+      <img width="64" height="64" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' fill='%23444'/></svg>" alt="small" />
+      <span>Wheel over these must scroll the page normally.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>3 · zoomable media</h2>
+    <div class="row">
+      <div class="bgpanel" id="bgpanel" title="background-image"></div>
+      <canvas id="cv" width="640" height="400"></canvas>
+      <video id="vid" preload="none" muted playsinline></video>
+      <a class="trap" id="trap" href="#clicked">click-trap link (pan a photo onto it)</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>4 · open shadow root</h2>
+    <div id="shadow-host"></div>
+  </section>
+
+  <section>
+    <h2>5 · iframe (all_frames content script)</h2>
+    <iframe id="frm" src="frame.html" title="frame"></iframe>
+  </section>
+
+  <section>
+    <h2>6 · page chrome over media (Instagram Reels pattern)</h2>
+    <div class="post" id="postShell">
+      <div class="post-media" id="postMedia">
+        <img id="postImg" alt="post media"
+             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='840' height='520'><rect width='840' height='520' fill='%232d4b7a'/><g fill='none' stroke='%23cfe0ff' stroke-width='10'><circle cx='420' cy='260' r='150'/><circle cx='420' cy='260' r='90'/></g><text x='28' y='48' font-family='sans-serif' font-size='30' fill='white'>POST 840x520</text></svg>" />
+      </div>
+      <div class="post-ui" id="postUi"><span>&#9829;</span><span>&#128172;</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>7 · carousel: slides beside each other in a clipping track</h2>
+    <div class="carousel" id="carousel">
+      <div class="track" id="track">
+        <div class="slide" id="slide1"><img id="slideImg" alt="slide one"
+             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='560'><rect width='900' height='560' fill='%23a8452f'/><circle cx='450' cy='280' r='170' fill='none' stroke='%23ffe6c9' stroke-width='14'/><text x='28' y='52' font-family='sans-serif' font-size='32' fill='white'>SLIDE 1</text></svg>" /></div>
+        <div class="slide" id="slide2"><img id="slideImg2" alt="slide two"
+             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='560'><rect width='900' height='560' fill='%232f6b58'/><rect x='250' y='120' width='400' height='320' fill='%23d8e6c9'/><text x='28' y='52' font-family='sans-serif' font-size='32' fill='white'>SLIDE 2</text></svg>" /></div>
+        <div class="slide" id="slide3"><img id="slideImg3" alt="slide three"
+             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='560'><rect width='900' height='560' fill='%233a4a86'/><circle cx='700' cy='300' r='120' fill='%23c9d4ff'/><text x='28' y='52' font-family='sans-serif' font-size='32' fill='white'>SLIDE 3</text></svg>" /></div>
+      </div>
+      <button type="button" class="next" id="next" aria-label="Next slide">&#8250;</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>8 · tight frame with no clipping of its own</h2>
+    <div class="bare">
+      <div class="tight" id="tightFrame"><img id="tightImg" alt="unclipped frame media"
+           src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='760' height='480'><rect width='760' height='480' fill='%236a5a2a'/><path d='M0 480 L380 0 L760 480 Z' fill='none' stroke='%23f2e2b0' stroke-width='12'/><text x='26' y='48' font-family='sans-serif' font-size='30' fill='white'>TIGHT 760x480</text></svg>" /></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>9 · media under overlays</h2>
+    <div class="row">
+      <div class="veiled" id="veilTile">
+        <img id="veilImg" alt="under a transparent overlay"
+             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='400'><rect width='640' height='400' fill='%231b6b57'/><circle cx='320' cy='200' r='120' fill='none' stroke='%23e8d9a8' stroke-width='16'/><text x='24' y='44' font-family='sans-serif' font-size='26' fill='white'>VEILED 640x400</text></svg>" />
+        <div class="veil" id="veil" title="transparent click layer"></div>
+      </div>
+      <div class="veiled" id="scrimTile">
+        <img id="scrimImg" alt="under an opaque scrim"
+             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='400'><rect width='640' height='400' fill='%235b3a1f'/><text x='24' y='44' font-family='sans-serif' font-size='26' fill='white'>SCRIMMED 640x400</text></svg>" />
+        <div class="scrim" id="scrim" title="opaque scrim"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>11 · MediaSource video (Instagram pattern: src is a blob: object URL)</h2>
+    <div class="card" id="mseCard" style="background:#000">
+      <video id="mseVid" muted playsinline style="display:block;width:420px;height:260px;object-fit:cover"></video>
+      <div class="meta">Served through MSE — its blob: URL is single-use.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>12 · image whose blob: URL is revoked after load</h2>
+    <div class="card">
+      <img id="revokedImg" alt="revoked blob" style="display:block;width:420px;height:280px;object-fit:cover" />
+      <div class="meta">The page still paints it; a fresh <code>&lt;img&gt;</code> with the same URL cannot.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>13 · video whose source cannot be re-requested</h2>
+    <div class="card" style="background:#000">
+      <video id="deadVid" muted playsinline src="/nope-missing.mp4" style="display:block;width:420px;height:260px;object-fit:cover"></video>
+      <div class="meta">The copy's load fails, so the zoom must move into the element.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>10 · hostile page chrome (fixed bar, stacking trap, later overlay)</h2>
+    <div class="stickybar" id="stickybar">sticky page bar &middot; z-index 9999</div>
+    <div class="hostile" id="hostile">
+      <div class="trapwrap" id="trapwrap">
+        <img id="hostileImg" alt="hostile media"
+             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='840' height='560'><rect width='840' height='560' fill='%23226655'/><g fill='none' stroke='%23d9f2ea' stroke-width='12'><path d='M120 470 L420 90 L720 470 Z'/></g><text x='26' y='52' font-family='sans-serif' font-size='32' fill='white'>HOSTILE 840x560</text></svg>" />
+      </div>
+      <div class="cover" id="coverCard">later sibling overlay &middot; z-index 6</div>
+    </div>
+  </section>
+</main>
+<div aria-hidden="true" style="height:80vh"></div>
+
+<script>
+  // Optional cross-origin frame: stress-site.html?frame=<absolute url>
+  const frameSrc = new URLSearchParams(location.search).get('frame');
+  if (frameSrc) document.getElementById('frm').src = frameSrc;
+
+  // Counters proving claim/pass-through behavior.
+  const counters = { pageWheel: 0, docCaptureWheel: 0, clicks: 0 };
+  addEventListener('wheel', (e) => { counters.pageWheel++; sync(); }, { passive: true });
+  document.addEventListener('wheel', () => { counters.docCaptureWheel++; }, { capture: true, passive: true });
+  addEventListener('click', () => { counters.clicks++; sync(); });
+  function sync() {
+    document.getElementById('counters').textContent =
+      ` pageWheel=${counters.pageWheel} · docCaptureWheel=${counters.docCaptureWheel} · clicks=${counters.clicks}`;
+  }
+  window.__loupeCounters = counters;
+
+  // canvas pattern
+  const ctx = document.getElementById('cv').getContext('2d');
+  for (let y = 0; y < 20; y++) for (let x = 0; x < 32; x++) {
+    ctx.fillStyle = `hsl(${x * 11} 70% ${30 + y * 2}%)`;
+    ctx.fillRect(x * 20, y * 20, 20, 20);
+  }
+
+  // a genuinely playing <video>: no external asset, a canvas stream stands in
+  const feed = document.createElement('canvas');
+  feed.width = 480;
+  feed.height = 270;
+  const fctx = feed.getContext('2d');
+  let frameNo = 0;
+  (function tick() {
+    frameNo += 1;
+    fctx.fillStyle = `hsl(${(frameNo * 2) % 360} 55% 38%)`;
+    fctx.fillRect(0, 0, 480, 270);
+    fctx.fillStyle = '#fff';
+    fctx.font = '30px sans-serif';
+    fctx.fillText('VIDEO ' + frameNo, 24, 64);
+    requestAnimationFrame(tick);
+  })();
+  const vid = document.getElementById('vid');
+  try {
+    vid.srcObject = feed.captureStream(12);
+    vid.play().catch(() => {});
+  } catch (_) {
+    /* captureStream unavailable: the element is still a real <video> */
+  }
+
+  /*
+   * MediaSource video, the way Instagram serves Reels: the element's src is a
+   * blob: object URL owned by one MediaSource, so a second <video> cannot load it.
+   */
+  (async function mseVideo() {
+    const feed2 = document.createElement('canvas');
+    feed2.width = 480;
+    feed2.height = 300;
+    const g = feed2.getContext('2d');
+    let f = 0;
+    const painter = setInterval(() => {
+      f += 1;
+      const grd = g.createLinearGradient(0, 0, 480, 300);
+      grd.addColorStop(0, `hsl(${(f * 3) % 360} 70% 45%)`);
+      grd.addColorStop(1, `hsl(${(f * 3 + 120) % 360} 70% 35%)`);
+      g.fillStyle = grd;
+      g.fillRect(0, 0, 480, 300);
+      g.fillStyle = '#fff';
+      g.font = '34px sans-serif';
+      g.fillText('MSE ' + f, 26, 70);
+    }, 33);
+    let blob = null;
+    try {
+      const rec = new MediaRecorder(feed2.captureStream(30), { mimeType: 'video/webm;codecs=vp8' });
+      const chunks = [];
+      rec.ondataavailable = (e) => chunks.push(e.data);
+      rec.start();
+      await new Promise((r) => setTimeout(r, 1200));
+      rec.stop();
+      await new Promise((r) => (rec.onstop = r));
+      blob = new Blob(chunks, { type: 'video/webm' });
+    } catch (_) {
+      clearInterval(painter);
+      return;
+    }
+    clearInterval(painter);
+
+    const ms = new MediaSource();
+    const url = URL.createObjectURL(ms);
+    const v = document.getElementById('mseVid');
+    v.src = url;
+    await new Promise((r) => ms.addEventListener('sourceopen', r, { once: true }));
+    const sb = ms.addSourceBuffer('video/webm;codecs=vp8');
+    sb.appendBuffer(await blob.arrayBuffer());
+    await new Promise((r) => sb.addEventListener('updateend', r, { once: true }));
+    ms.endOfStream();
+    v.loop = true;
+    v.play().catch(() => {});
+    window.__mseReady = true;
+  })();
+
+  // an image whose blob: URL is revoked immediately after it paints
+  (async function revokedImage() {
+    const svg =
+      "<svg xmlns='http://www.w3.org/2000/svg' width='840' height='560'>" +
+      "<rect width='840' height='560' fill='%23c2410c'/>" +
+      "<circle cx='420' cy='280' r='150' fill='none' stroke='%23ffedd5' stroke-width='18'/>" +
+      "<text x='28' y='60' font-family='sans-serif' font-size='34' fill='white'>REVOKED BLOB</text></svg>";
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const img = document.getElementById('revokedImg');
+    const url = URL.createObjectURL(blob);
+    await new Promise((r) => {
+      img.onload = r;
+      img.onerror = r;
+      img.src = url;
+    });
+    URL.revokeObjectURL(url);
+    window.__revokedReady = true;
+  })();
+
+  // open shadow root with a zoomable image
+  const host = document.getElementById('shadow-host');
+  const sr = host.attachShadow({ mode: 'open' });
+  const img = document.createElement('img');
+  img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='380'><rect width='600' height='380' fill='%237c5cff'/><text x='30' y='60' font-family='sans-serif' font-size='36' fill='white'>shadow root image</text></svg>";
+  img.style.cssText = 'width:300px;height:190px;display:block;border-radius:8px;object-fit:cover';
+  sr.appendChild(img);
+</script>
+</body>
+</html>

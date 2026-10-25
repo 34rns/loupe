@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Loupe",
+  "version": "0.1.0",
+  "description": "Hover any photo, video or artwork and scroll to zoom it right at your cursor. Hold left-click to pan.",
+  "minimum_chrome_version": "114",
+  "permissions": ["storage"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Loupe",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "shared/settings.js",
+        "content/10-math.js",
+        "content/20-targets.js",
+        "content/25-hud.js",
+        "content/30-engine.js",
+        "content/40-bridge.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
