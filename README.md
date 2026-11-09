@@ -89,3 +89,7 @@ Loupe makes **no network requests**. There is no analytics, no telemetry, no cra
 ## License
 
 [MIT](LICENSE) © 34rns
+
+## Support
+
+[Buy me a coffee](https://www.supportkori.com/rnsofficial)
